@@ -119,12 +119,12 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids) {
         .middle_of(ids.middle_column)
         .set(ids.tabs, ui);
 
-    widget::Text::new("Fancy Title")
+    widget::Text::new("Game of Life")
         .color(color::LIGHT_ORANGE)
         .font_size(48)
         .middle_of(ids.header)
         .set(ids.title, ui);
-    widget::Text::new("Subtitle")
+    widget::Text::new("by sips")
         .color(color::BLUE.complement())
         .mid_bottom_of(ids.header)
         .set(ids.subtitle, ui);
