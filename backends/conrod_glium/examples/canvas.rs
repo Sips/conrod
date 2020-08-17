@@ -94,11 +94,11 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids) {
 
     // Construct our main `Canvas` tree.
     widget::Canvas::new().flow_down(&[
-        (ids.header, widget::Canvas::new().color(color::BLUE).pad_bottom(20.0)),
-        (ids.body, widget::Canvas::new().length(300.0).flow_right(&[
-            (ids.left_column, widget::Canvas::new().color(color::LIGHT_ORANGE).pad(20.0)),
+        (ids.header, widget::Canvas::new().length(100.0).color(color::WHITE).pad_bottom(20.0)),
+        (ids.body, widget::Canvas::new().length(100.0).flow_right(&[
+            // (ids.left_column, widget::Canvas::new().color(color::LIGHT_ORANGE).pad(20.0)),
             (ids.middle_column, widget::Canvas::new().color(color::ORANGE)),
-            (ids.right_column, widget::Canvas::new().color(color::DARK_ORANGE).pad(20.0)),
+            // (ids.right_column, widget::Canvas::new().color(color::DARK_ORANGE).pad(20.0)),
         ])),
         (ids.footer, widget::Canvas::new().color(color::BLUE).scroll_kids_vertically()),
     ]).set(ids.master, ui);
@@ -112,7 +112,7 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids) {
     floating.middle_of(ids.right_column).title_bar("Orange").color(color::LIGHT_ORANGE).set(ids.floating_b, ui);
 
     // Here we make some canvas `Tabs` in the middle column.
-    widget::Tabs::new(&[(ids.tab_foo, "FOO"), (ids.tab_bar, "BAR"), (ids.tab_baz, "BAZ")])
+    widget::Tabs::new(&[(ids.tab_foo, "FOO"), (ids.tab_bar, "BAR"), (ids.tab_baz, "BAZ"), (ids.tab_bai, "BAI")])
         .wh_of(ids.middle_column)
         .color(color::BLUE)
         .label_color(color::WHITE)
@@ -120,12 +120,12 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids) {
         .set(ids.tabs, ui);
 
     widget::Text::new("Game of Life")
-        .color(color::LIGHT_ORANGE)
+        .color(color::LIGHT_GREEN)
         .font_size(48)
         .middle_of(ids.header)
         .set(ids.title, ui);
     widget::Text::new("by sips")
-        .color(color::BLUE.complement())
+        .color(color::LIGHT_GREEN)
         .mid_bottom_of(ids.header)
         .set(ids.subtitle, ui);
 
@@ -143,6 +143,7 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids) {
     text(widget::Text::new("Foo!")).middle_of(ids.tab_foo).set(ids.foo_label, ui);
     text(widget::Text::new("Bar!")).middle_of(ids.tab_bar).set(ids.bar_label, ui);
     text(widget::Text::new("BAZ!")).middle_of(ids.tab_baz).set(ids.baz_label, ui);
+    text(widget::Text::new("BAI!")).middle_of(ids.tab_bai).set(ids.bai_label, ui);
 
     let footer_wh = ui.wh_of(ids.footer).unwrap();
     let mut elements = widget::Matrix::new(COLS, ROWS)
@@ -152,8 +153,8 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids) {
     while let Some(elem) = elements.next(ui) {
         let (r, c) = (elem.row, elem.col);
         let n = c + r * c;
-        let luminance = n as f32 / (COLS * ROWS) as f32;
-        let button = widget::Button::new().color(color::BLUE.with_luminance(luminance));
+        // let luminance = n as f32 / (COLS * ROWS) as f32;
+        let button = widget::Button::new().color(color::WHITE);
         for _click in elem.set(button, ui) {
             println!("Hey! {:?}", (r, c));
         }
@@ -170,8 +171,8 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids) {
 
 
 // Button matrix dimensions.
-const ROWS: usize = 10;
-const COLS: usize = 24;
+const ROWS: usize = 40;
+const COLS: usize = 40;
 
 // Generate a unique `WidgetId` for each widget.
 widget_ids! {
@@ -190,6 +191,7 @@ widget_ids! {
         tab_foo,
         tab_bar,
         tab_baz,
+        tab_bai,
 
         title,
         subtitle,
@@ -198,6 +200,7 @@ widget_ids! {
         foo_label,
         bar_label,
         baz_label,
+        bai_label,
         button_matrix,
         bing,
         bong,
