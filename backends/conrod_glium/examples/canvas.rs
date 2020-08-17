@@ -19,11 +19,11 @@ fn main() {
     // let _cells:&mut [bool;1600] = &mut [false;1600];
     let mut cells = vec![false;1600];
 
-    // for i in 0.._cells.len() {
-    //     if i % 27 == 0 {
-    //         cells[i] = true;
-    //     }
-    // }
+    for i in 0..cells.len() {
+        if i % 27 == 0 {
+            cells[i] = true;
+        }
+    }
 
     // Build the window.
     let mut events_loop = glium::glutin::EventsLoop::new();
@@ -98,9 +98,14 @@ fn main() {
     }
 }
 
-// fn getIndex(r: i32, c: i32) {
-//     return ()
-// }
+fn stepSim(cells: &mut Vec<bool>, rows: i32, cols: i32) {
+    let mut cellCount = 
+    for i in 1..cols-1 {
+        for j in 1..rows-1 {
+
+        }
+    }
+}
 
 // Draw the Ui.
 fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, cells: &mut Vec<bool>) {
@@ -110,9 +115,9 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, cells: &mut Vec<b
     widget::Canvas::new().flow_down(&[
         (ids.header, widget::Canvas::new().length(100.0).color(color::WHITE).pad_bottom(20.0)),
         (ids.body, widget::Canvas::new().length(100.0).flow_right(&[
-            // (ids.left_column, widget::Canvas::new().color(color::LIGHT_ORANGE).pad(20.0)),
+            (ids.left_column, widget::Canvas::new().color(color::LIGHT_ORANGE).pad(20.0)),
             (ids.middle_column, widget::Canvas::new().color(color::ORANGE)),
-            // (ids.right_column, widget::Canvas::new().color(color::DARK_ORANGE).pad(20.0)),
+            (ids.right_column, widget::Canvas::new().color(color::DARK_ORANGE).pad(20.0)),
         ])),
         (ids.footer, widget::Canvas::new().color(color::BLUE).scroll_kids_vertically()),
     ]).set(ids.master, ui);
@@ -126,7 +131,7 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, cells: &mut Vec<b
     floating.middle_of(ids.right_column).title_bar("Orange").color(color::LIGHT_ORANGE).set(ids.floating_b, ui);
 
     // Here we make some canvas `Tabs` in the middle column.
-    widget::Tabs::new(&[(ids.tab_foo, "FOO"), (ids.tab_bar, "BAR"), (ids.tab_baz, "BAZ"), (ids.tab_bai, "BAI")])
+    widget::Tabs::new(&[(ids.tab_step, "Step"), (ids.tab_bar, "BAR"), (ids.tab_baz, "BAZ"), (ids.tab_bai, "BAI")])
         .wh_of(ids.middle_column)
         .color(color::BLUE)
         .label_color(color::WHITE)
@@ -153,8 +158,10 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, cells: &mut Vec<b
         .bottom_right_of(ids.right_column)
         .set(ids.bottom_right, ui);
 
+
+    
     fn text(text: widget::Text) -> widget::Text { text.color(color::WHITE).font_size(36) }
-    text(widget::Text::new("Foo!")).middle_of(ids.tab_foo).set(ids.foo_label, ui);
+    text(widget::Text::new("Step")).middle_of(ids.tab_step).set(ids.step_label, ui);
     text(widget::Text::new("Bar!")).middle_of(ids.tab_bar).set(ids.bar_label, ui);
     text(widget::Text::new("BAZ!")).middle_of(ids.tab_baz).set(ids.baz_label, ui);
     text(widget::Text::new("BAI!")).middle_of(ids.tab_bai).set(ids.bai_label, ui);
@@ -180,13 +187,14 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, cells: &mut Vec<b
         
         } 
         for _click in elem.set(button, ui) {
-            println!("Hey! {:?}", (r, c));
+            cells[n] = !cells[n];
+            // println!("Hey! {:?}", (r, c));
         }
     }
 
     let button = widget::Button::new().color(color::RED).w_h(30.0, 30.0);
     for _click in button.clone().middle_of(ids.floating_a).set(ids.bing, ui) {
-        println!("Bing!");
+        stepSim(cells, r, c);
     }
     for _click in button.middle_of(ids.floating_b).set(ids.bong, ui) {
         println!("Bong!");
@@ -212,7 +220,7 @@ widget_ids! {
         floating_a,
         floating_b,
         tabs,
-        tab_foo,
+        tab_step,
         tab_bar,
         tab_baz,
         tab_bai,
@@ -221,7 +229,7 @@ widget_ids! {
         subtitle,
         top_left,
         bottom_right,
-        foo_label,
+        step_label,
         bar_label,
         baz_label,
         bai_label,
