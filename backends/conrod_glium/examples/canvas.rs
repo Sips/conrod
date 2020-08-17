@@ -15,6 +15,16 @@ fn main() {
     const WIDTH: u32 = 800;
     const HEIGHT: u32 = 600;
 
+    // 40 * 40 = 1600
+    // let _cells:&mut [bool;1600] = &mut [false;1600];
+    let mut cells = vec![false;1600];
+
+    // for i in 0.._cells.len() {
+    //     if i % 27 == 0 {
+    //         cells[i] = true;
+    //     }
+    // }
+
     // Build the window.
     let mut events_loop = glium::glutin::EventsLoop::new();
     let window = glium::glutin::WindowBuilder::new()
@@ -75,7 +85,7 @@ fn main() {
         }
 
         // Instantiate all widgets in the GUI.
-        set_widgets(ui.set_widgets(), ids);
+        set_widgets(ui.set_widgets(), ids, &mut cells);
 
         // Render the `Ui` and then display it on the screen.
         if let Some(primitives) = ui.draw_if_changed() {
@@ -88,8 +98,12 @@ fn main() {
     }
 }
 
+// fn getIndex(r: i32, c: i32) {
+//     return ()
+// }
+
 // Draw the Ui.
-fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids) {
+fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, cells: &mut Vec<bool>) {
     use conrod_core::{color, widget, Colorable, Labelable, Positionable, Sizeable, Widget};
 
     // Construct our main `Canvas` tree.
@@ -150,11 +164,21 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids) {
         .w_h(footer_wh[0], footer_wh[1] * 2.0)
         .mid_top_of(ids.footer)
         .set(ids.button_matrix, ui);
+    
+    
+
     while let Some(elem) = elements.next(ui) {
         let (r, c) = (elem.row, elem.col);
-        let n = c + r * c;
+         let n = c + r * c;
         // let luminance = n as f32 / (COLS * ROWS) as f32;
-        let button = widget::Button::new().color(color::WHITE);
+
+        
+
+        let mut button = widget::Button::new().color(color::WHITE);
+        if cells[n] {
+            button = widget::Button::new().color(color::BLACK);
+        
+        } 
         for _click in elem.set(button, ui) {
             println!("Hey! {:?}", (r, c));
         }
