@@ -57,6 +57,59 @@ impl GameBoard {
     }
 }
 
+pub struct EventLoop {
+    ui_needs_update: bool,
+    last_update: std::time::Instant,
+}
+
+impl EventLoop {
+    pub fn new() -> Self {
+        EventLoop { last_update: std::time::Instant::now(),
+                    ui_needs_update: true,
+                  }
+    }
+
+    /// Produce an iterator yielding all available events.
+    pub fn next(&mut self, events_loop: &mut glium::glutin::EventsLoop) ->
+                Vec<glium::glutin::Event> {
+
+        // We don't want to loop any faster than 60 FPS, so wait until it has been at least 16ms
+        // since the last yield.
+        let last_update = self.last_update;
+        let sixteen_ms = std::time::Duration::from_millis(16);
+        let duration_since_last_update = std::time::Instant::now().duration_since(last_update);
+        if duration_since_last_update < sixteen_ms {
+            std::thread::sleep(sixteen_ms - duration_since_last_update);
+        }
+
+        // Collect all pending events.
+        let mut events = Vec::new();
+        events_loop.poll_events(|event| events.push(event));
+
+        // If there are no events and the UI does not need updating, wait
+        // for the next event.
+        if events.is_empty() && !self.ui_needs_update {
+            events_loop.run_forever(|event| { events.push(event);
+                                    glium::glutin::ControlFlow::Break });
+        }
+
+        self.ui_needs_update = false;
+        self.last_update = std::time::Instant::now();
+
+        events
+    }
+
+
+    /// Notifies the event loop that the `Ui` requires another update whether
+    /// or not there are any pending events.
+    ///
+    /// This is primarily used on the occasion that some part of the UI is
+    /// still animating and requires further updates to do so.
+    pub fn needs_update(&mut self) {
+        self.ui_needs_update = true;
+    }
+}
+
 fn idx (r: i32, c: i32) -> usize {
     return (c + r * 40) as usize;
 }
@@ -72,12 +125,6 @@ fn main() {
         cols: 40,
         rows: 40
     };
-
-    // for i in 0..16000() {
-    //     if i % 27 == 0 {
-    //         board.cSwitch(i);
-    //     }
-    // }
 
     // Build the window.
     let mut events_loop = glium::glutin::EventsLoop::new();
@@ -109,17 +156,24 @@ fn main() {
     let ids = &mut Ids::new(ui.widget_id_generator());
 
     // Poll events from the window.
-    let mut event_loop = support::EventLoop::new();
+    // let mut event_loop = support::EventLoop::new();
+    let mut event_loop = EventLoop::new();
     'main: loop {
 
         // Handle all events.
         for event in event_loop.next(&mut events_loop) {
+            if let Some(event) = support::convert_event(
+                event.clone(),
+                &display
+            ) {
+                ui.handle_event(event);
+            }
 
             // Use the `winit` backend feature to convert the winit event to a conrod one.
-            if let Some(event) = support::convert_event(event.clone(), &display) {
-                ui.handle_event(event);
-                event_loop.needs_update();
-            }
+            // if let Some(event) = support::convert_event(event.clone(), &display) {
+            //     ui.handle_event(event);
+            //     event_loop.needs_update();
+            // }
 
             match event {
                 glium::glutin::Event::WindowEvent { event, .. } => match event {
@@ -167,12 +221,20 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, board: &mut GameB
         (ids.footer, widget::Canvas::new().color(color::BLUE).scroll_kids_vertically()),
     ]).set(ids.master, ui);
 
+    let button = widget::Button::new().color(color::RED).w_h(30.0, 30.0);
+    for _click in button.clone().top_left_of(ids.left_column).set(ids.bing, ui) {
+        board.step();
+    }
+    for _click in button.top_left_of(ids.left_column).set(ids.bong, ui) {
+        println!("Bong!");
+    }
+
     // A scrollbar for the `FOOTER` canvas.
     widget::Scrollbar::y_axis(ids.footer).auto_hide(true).set(ids.footer_scrollbar, ui);
 
     // Now we'll make a couple floating `Canvas`ses.
     let floating = widget::Canvas::new().floating(true).w_h(110.0, 150.0).label_color(color::WHITE);
-    floating.middle_of(ids.left_column).title_bar("Blue").color(color::BLUE).set(ids.floating_a, ui);
+    //floating.middle_of(ids.left_column).title_bar("Blue").color(color::BLUE).set(ids.floating_a, ui);
     floating.middle_of(ids.right_column).title_bar("Orange").color(color::LIGHT_ORANGE).set(ids.floating_b, ui);
 
     // Here we make some canvas `Tabs` in the middle column.
@@ -193,10 +255,10 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, board: &mut GameB
         .mid_bottom_of(ids.header)
         .set(ids.subtitle, ui);
 
-    widget::Text::new("Top Left")
-        .color(color::LIGHT_ORANGE.complement())
-        .top_left_of(ids.left_column)
-        .set(ids.top_left, ui);
+    // widget::Text::new("Top Left")
+    //     .color(color::LIGHT_ORANGE.complement())
+    //     .top_left_of(ids.left_column)
+    //     .set(ids.top_left, ui);
 
     widget::Text::new("Bottom Right")
         .color(color::DARK_ORANGE.complement())
@@ -221,7 +283,7 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, board: &mut GameB
 
     while let Some(elem) = elements.next(ui) {
         let (r, c) = (elem.row, elem.col);
-         let n = c + r * c;
+        // let n = c + r * c;
         // let luminance = n as f32 / (COLS * ROWS) as f32;
 
         
@@ -236,14 +298,6 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, board: &mut GameB
             // cells[n] = !cells[n];
             // println!("Hey! {:?}", (r, c));
         }
-    }
-
-    let button = widget::Button::new().color(color::RED).w_h(30.0, 30.0);
-    for _click in button.clone().middle_of(ids.floating_a).set(ids.bing, ui) {
-        board.step();
-    }
-    for _click in button.middle_of(ids.floating_b).set(ids.bong, ui) {
-        println!("Bong!");
     }
 }
 
