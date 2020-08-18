@@ -22,7 +22,6 @@ impl GameBoard {
         return self.cells[idx(r,c)];
     }
     fn cell_click(&mut self, r:i32, c:i32) {
-        println!("r: {} c: {} i: {}", r, c, idx(r,c));
         self.cells[idx(r,c)] = !self.cells[idx(r,c)];
     }
     fn step(&mut self) { //cells: &mut Vec<bool>, rows: i32, cols: i32) {
@@ -34,7 +33,6 @@ impl GameBoard {
                 // check i, j vs j, i
                 // if the cell is alive, increment the count of the surrounding cells
                 if self.cells[idx(i, j)] == true {
-                    println!("Alive cell: [ {}, {} ]", i, j);
                     for p in i-1..i+2 {
                         for q in j-1..j+2  {
                             cell_count[idx(p,q)] += 1;
@@ -44,12 +42,12 @@ impl GameBoard {
             }
         }
 
-        for i in 1..self.rows-1 {
-            for j in 1..self.cols-1 {
+        for i in 1..self.cols-1 {
+            for j in 1..self.rows-1 {
                 let idx = idx(i,j);
                 let alv = self.cells[idx];
                 let cnt = cell_count[idx];
-                
+
                 if ( cnt == 3 ) || (alv && (cnt == 4)) {
                     new_cells[idx] = true;
                 }
