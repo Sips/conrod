@@ -11,19 +11,73 @@ use glium::Surface;
 
 mod support;
 
+struct GameBoard {
+    cells: Vec<bool>,
+    cols: i32,
+    rows: i32,
+}
+
+impl GameBoard {
+    fn cell(&self, r: i32, c: i32) -> bool {
+        return self.cells[idx(r,c)];
+    }
+    fn cell_click(&mut self, r:i32, c:i32) {
+        self.cells[idx(r,c)] = !self.cells[idx(r,c)];
+    }
+    fn step(&mut self) { //cells: &mut Vec<bool>, rows: i32, cols: i32) {
+        let cell_count = &mut vec![0;1600];
+        let new_cells = &mut vec![false;1600];
+        
+        for i in 1..self.cols-1 {
+            for j in 1..self.rows-1 {
+                // check i, j vs j, i
+                // if the cell is alive, increment the count of the surrounding cells
+                if self.cells[idx(j, i)] == true {
+                    for p in i-1..i+2 {
+                        for q in j-1..j+2  {
+                            cell_count[idx(p,q)] += 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        for i in 1..self.cols-1 {
+            for j in 1..self.rows-1 {
+                let idx = idx(i,j);
+                let alv = self.cells[idx];
+                let cnt = cell_count[idx];
+                
+                if ( cnt == 4 ) || (alv && (cnt == 3)) {
+                    new_cells[idx] = true;
+                }
+            }
+        }
+        self.cells = new_cells.to_vec();
+    }
+}
+
+fn idx (r: i32, c: i32) -> usize {
+    return (c + r * c) as usize;
+}
+
 fn main() {
     const WIDTH: u32 = 800;
     const HEIGHT: u32 = 600;
 
     // 40 * 40 = 1600
     // let _cells:&mut [bool;1600] = &mut [false;1600];
-    let mut cells = vec![false;1600];
+    let board = &mut GameBoard {
+        cells: vec![false;1600],
+        cols: 40,
+        rows: 40
+    };
 
-    for i in 0..cells.len() {
-        if i % 27 == 0 {
-            cells[i] = true;
-        }
-    }
+    // for i in 0..16000() {
+    //     if i % 27 == 0 {
+    //         board.cSwitch(i);
+    //     }
+    // }
 
     // Build the window.
     let mut events_loop = glium::glutin::EventsLoop::new();
@@ -85,7 +139,7 @@ fn main() {
         }
 
         // Instantiate all widgets in the GUI.
-        set_widgets(ui.set_widgets(), ids, &mut cells);
+        set_widgets(ui.set_widgets(), ids, board);
 
         // Render the `Ui` and then display it on the screen.
         if let Some(primitives) = ui.draw_if_changed() {
@@ -98,17 +152,8 @@ fn main() {
     }
 }
 
-fn stepSim(cells: &mut Vec<bool>, rows: i32, cols: i32) {
-    let mut cellCount = 
-    for i in 1..cols-1 {
-        for j in 1..rows-1 {
-
-        }
-    }
-}
-
 // Draw the Ui.
-fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, cells: &mut Vec<bool>) {
+fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, board: &mut GameBoard) {
     use conrod_core::{color, widget, Colorable, Labelable, Positionable, Sizeable, Widget};
 
     // Construct our main `Canvas` tree.
@@ -182,19 +227,20 @@ fn set_widgets(ref mut ui: conrod_core::UiCell, ids: &mut Ids, cells: &mut Vec<b
         
 
         let mut button = widget::Button::new().color(color::WHITE);
-        if cells[n] {
+        if board.cell(r as i32,c as i32) {
             button = widget::Button::new().color(color::BLACK);
         
         } 
         for _click in elem.set(button, ui) {
-            cells[n] = !cells[n];
+            board.cell_click(r as i32,c as i32);
+            // cells[n] = !cells[n];
             // println!("Hey! {:?}", (r, c));
         }
     }
 
     let button = widget::Button::new().color(color::RED).w_h(30.0, 30.0);
     for _click in button.clone().middle_of(ids.floating_a).set(ids.bing, ui) {
-        stepSim(cells, r, c);
+        board.step();
     }
     for _click in button.middle_of(ids.floating_b).set(ids.bong, ui) {
         println!("Bong!");
